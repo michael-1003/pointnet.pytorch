@@ -2,12 +2,16 @@ from __future__ import print_function
 import torch.utils.data as data
 import os
 import os.path
-import torch
+import torch as tch
 import numpy as np
 import sys
 from tqdm import tqdm 
 import json
 from plyfile import PlyData, PlyElement
+
+# file_path = os.path.dirname(os.path.realpath(__file__))
+file_path = '/home/sss-linux2/Project/pointnet.pytorch/pointnet'
+
 
 def get_segmentation_classes(root):
     catfile = os.path.join(root, 'synsetoffset2category.txt')
@@ -28,7 +32,7 @@ def get_segmentation_classes(root):
             token = (os.path.splitext(os.path.basename(fn))[0])
             meta[item].append((os.path.join(dir_point, token + '.pts'), os.path.join(dir_seg, token + '.seg')))
     
-    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../misc/num_seg_classes.txt'), 'w') as f:
+    with open(os.path.join(file_path, '../misc/num_seg_classes.txt'), 'w') as f:
         for item in cat:
             datapath = []
             num_seg_classes = 0
@@ -43,15 +47,17 @@ def get_segmentation_classes(root):
             print("category {} num segmentation classes {}".format(item, num_seg_classes))
             f.write("{}\t{}\n".format(item, num_seg_classes))
 
+
 def gen_modelnet_id(root):
     classes = []
     with open(os.path.join(root, 'train.txt'), 'r') as f:
         for line in f:
             classes.append(line.strip().split('/')[0])
     classes = np.unique(classes)
-    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../misc/modelnet_id.txt'), 'w') as f:
+    with open(os.path.join(file_path, '../misc/modelnet_id.txt'), 'w') as f:
         for i in range(len(classes)):
             f.write('{}\t{}\n'.format(classes[i], i))
+
 
 class ShapeNetDataset(data.Dataset):
     def __init__(self,
@@ -98,13 +104,13 @@ class ShapeNetDataset(data.Dataset):
                 self.datapath.append((item, fn[0], fn[1]))
 
         self.classes = dict(zip(sorted(self.cat), range(len(self.cat))))
-        print(self.classes)
-        with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../misc/num_seg_classes.txt'), 'r') as f:
+        # print(self.classes)
+        with open(os.path.join(file_path, '../misc/num_seg_classes.txt'), 'r') as f:
             for line in f:
                 ls = line.strip().split()
                 self.seg_classes[ls[0]] = int(ls[1])
         self.num_seg_classes = self.seg_classes[list(self.cat.keys())[0]]
-        print(self.seg_classes, self.num_seg_classes)
+        # print(self.seg_classes, self.num_seg_classes)
 
     def __getitem__(self, index):
         fn = self.datapath[index]
@@ -140,6 +146,7 @@ class ShapeNetDataset(data.Dataset):
     def __len__(self):
         return len(self.datapath)
 
+
 class ModelNetDataset(data.Dataset):
     def __init__(self,
                  root,
@@ -156,7 +163,7 @@ class ModelNetDataset(data.Dataset):
                 self.fns.append(line.strip())
 
         self.cat = {}
-        with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../misc/modelnet_id.txt'), 'r') as f:
+        with open(os.path.join(file_path, '../misc/modelnet_id.txt'), 'r') as f:
             for line in f:
                 ls = line.strip().split()
                 self.cat[ls[0]] = int(ls[1])
@@ -187,9 +194,9 @@ class ModelNetDataset(data.Dataset):
         cls = torch.from_numpy(np.array([cls]).astype(np.int64))
         return point_set, cls
 
-
     def __len__(self):
         return len(self.fns)
+
 
 if __name__ == '__main__':
     dataset = sys.argv[1]

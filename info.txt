@@ -1,0 +1,4 @@
+datapath: '/data1/pointnet_test/shapenetcore_partanno_segmentation_benchmark_v0'
+
+cls best: 55 / 0.9798
+cls last: 249 / 

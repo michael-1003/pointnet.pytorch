@@ -77,6 +77,7 @@ classifier.cuda()
 
 num_batch = len(dataset) / opt.batchSize
 
+accs = []
 for epoch in range(opt.nepoch):
     scheduler.step()
     for i, data in enumerate(dataloader, 0):
@@ -113,6 +114,9 @@ for epoch in range(opt.nepoch):
             print('[%d: %d/%d] %s loss: %f accuracy: %f' % (epoch, i, num_batch, blue('test'), loss.item(), correct.item()/float(opt.batchSize * 2500)))
 
     torch.save(classifier.state_dict(), '%s/seg_model_%s_%d.pth' % (opt.outf, opt.class_choice, epoch))
+    
+    with open('seg_train_result.txt', 'w') as f:
+        f.write('%d,%.8f\n' % (epoch, correct.item()/float(opt.batchSize * 2500)))
 
 ## benchmark mIOU
 shape_ious = []
